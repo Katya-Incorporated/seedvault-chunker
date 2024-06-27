@@ -66,9 +66,12 @@ internal class RingByteArray(capacity: Int) {
         return if (from < to) {
             elements.copyOfRange(from, to)
         } else {
-            ByteArray(elements.size + to).apply {
+            // need to wrap array around, 'from' is larger than 'to'
+            ByteArray(elements.size - from + to).apply {
+                // copy 'from' -> end to beginning of new array
                 elements.copyInto(this, 0, from, elements.size)
-                elements.copyInto(this, elements.size, 0, to)
+                // copy beginning -> 'to' to end of new array
+                elements.copyInto(this, elements.size - from, 0, to)
             }
         }
     }
