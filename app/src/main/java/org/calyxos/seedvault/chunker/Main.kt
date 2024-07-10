@@ -13,6 +13,7 @@ import org.calyxos.seedvault.chunker.Const.AVERAGE_MIN
 import java.io.File
 import java.security.MessageDigest
 import kotlin.math.roundToInt
+import kotlin.time.measureTime
 
 class Cli : CliktCommand() {
     private val files by argument().multiple(required = true)
@@ -30,13 +31,17 @@ class Cli : CliktCommand() {
         .default(1)
 
     override fun run() {
-        files.forEach { file ->
-            onEachFile(File(file))
+        val duration = measureTime {
+            files.forEach { file ->
+                onEachFile(File(file))
+            }
         }
+        println("\nTook: $duration")
         if (checkDedupRatio) {
             println()
             val totalSize = files.sumOf { File(it).length() }
-            println("Files: ${files.size} with a total of $totalSize bytes")
+            val sizePerTime = totalSize / duration.inWholeSeconds
+            println("Files: ${files.size} with a total of $totalSize bytes ($sizePerTime bytes/s)")
             println("Unique chunks: ${chunks.size}")
             println("Dupe chunks: $reusedChunks")
             println("Dupe data: $sizeDupe")
