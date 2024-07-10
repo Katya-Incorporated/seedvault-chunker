@@ -6,6 +6,7 @@ import org.calyxos.seedvault.chunker.Const.MAXIMUM_MAX
 import org.calyxos.seedvault.chunker.Const.MAXIMUM_MIN
 import org.calyxos.seedvault.chunker.Const.MINIMUM_MAX
 import org.calyxos.seedvault.chunker.Const.MINIMUM_MIN
+import java.io.File
 import java.lang.Byte.toUnsignedInt
 import kotlin.math.log2
 import kotlin.math.min
@@ -107,5 +108,20 @@ class Chunker(
             index++
         }
         return index
+    }
+}
+
+fun Chunker.chunk(file: File, onNewChunk: (Chunk) -> Unit) {
+    file.inputStream().use { inputStream ->
+        val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
+        var bytes = inputStream.read(buffer)
+        while (bytes >= 0) {
+            addBytes(buffer.copyOfRange(0, bytes)).forEach { chunk ->
+                onNewChunk(chunk)
+            }
+            bytes = inputStream.read(buffer)
+        }
+        // get final chunks
+        finalize().forEach { chunk -> onNewChunk(chunk) }
     }
 }

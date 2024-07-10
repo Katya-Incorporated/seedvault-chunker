@@ -51,22 +51,15 @@ class Cli : CliktCommand() {
     private fun onEachFile(file: File) {
         println()
         println(file.absolutePath)
+        if (!file.isFile) {
+            println("  not a file, ignoring...")
+            return
+        }
         val digest = MessageDigest.getInstance("SHA-256")
         val chunker = Chunker(size, normalization) { bytes ->
             digest.digest(bytes).fold("") { str, it -> str + "%02x".format(it) }
         }
-        file.inputStream().use { inputStream ->
-            val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
-            var bytes = inputStream.read(buffer)
-            while (bytes >= 0) {
-                chunker.addBytes(buffer.copyOfRange(0, bytes)).forEach { chunk ->
-                    onNewChunk(chunk)
-                }
-                bytes = inputStream.read(buffer)
-            }
-            // get final chunks
-            chunker.finalize().forEach { chunk -> onNewChunk(chunk) }
-        }
+        chunker.chunk(file) { chunk -> onNewChunk(chunk) }
     }
 
     private fun onNewChunk(chunk: Chunk) {
