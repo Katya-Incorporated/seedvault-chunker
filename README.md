@@ -8,4 +8,5 @@ It can't freely read data from a stream, but needs to wait until the system allo
 
 Based on [Farley-Chen/fastcdc-java](https://github.com/Farley-Chen/fastcdc-java)
 which is based on [iscc/fastcdc-py](https://github.com/iscc/fastcdc-py)
-and [nlfiedler/fastcdc-rs](https://github.com/nlfiedler/fastcdc-rs).
+which is based on [nlfiedler/fastcdc-rs](https://github.com/nlfiedler/fastcdc-rs)
+using the [ronomon](https://github.com/ronomon/deduplication#content-dependent-chunking) implementation.

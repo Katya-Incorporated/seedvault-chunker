@@ -8,7 +8,6 @@ import org.calyxos.seedvault.chunker.Const.MINIMUM_MAX
 import org.calyxos.seedvault.chunker.Const.MINIMUM_MIN
 import java.io.File
 import java.lang.Byte.toUnsignedInt
-import kotlin.math.log2
 import kotlin.math.min
 
 class Chunk(val offset: Long, val length: Int, val data: ByteArray, val hash: String)
@@ -42,7 +41,7 @@ class Chunker(
         check(maxSize >= avgSize)
         check(normalization in 0..3)
 
-        val bits = log2(avgSize.toDouble())
+        val bits = Utils.log2(avgSize)
         maskS = Utils.mask(bits + normalization)
         maskL = Utils.mask(bits - normalization)
     }
