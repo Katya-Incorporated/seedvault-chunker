@@ -1,5 +1,6 @@
 package org.calyxos.seedvault.chunker
 
+import org.calyxos.seedvault.chunker.Const.GEAR
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -7,7 +8,7 @@ class ChunkerTest {
 
     @Test
     fun testAllZeros() {
-        val chunker = Chunker(64, 256, 1024, 1) {
+        val chunker = Chunker(64, 256, 1024, 1, GEAR) {
             "" // don't care
         }
         val bytes = ByteArray(10240)

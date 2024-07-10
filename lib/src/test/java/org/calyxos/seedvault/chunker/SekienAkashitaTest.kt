@@ -1,7 +1,10 @@
 package org.calyxos.seedvault.chunker
 
+import org.calyxos.seedvault.chunker.Const.GEAR
 import org.calyxos.seedvault.chunker.Const.MINIMUM_MIN
+import org.junit.Assert.assertArrayEquals
 import java.io.File
+import kotlin.random.Random
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -11,7 +14,7 @@ class SekienAkashitaTest {
 
     @Test
     fun testSekien8kChunks() {
-        val chunker = Chunker(4096, 8192, 16384, 1) {
+        val chunker = Chunker(4096, 8192, 16384, 1, GEAR) {
             "" // don't care
         }
         val file = getSekienAkashita()
@@ -45,7 +48,7 @@ class SekienAkashitaTest {
 
     @Test
     fun testSekien16kChunks() {
-        val chunker = Chunker(8192, 16384, 32768, 1) {
+        val chunker = Chunker(8192, 16384, 32768, 1, GEAR) {
             "" // don't care
         }
         val file = getSekienAkashita()
@@ -69,7 +72,7 @@ class SekienAkashitaTest {
 
     @Test
     fun testSekien32kChunks() {
-        val chunker = Chunker(16384, 32768, 65536, 1) {
+        val chunker = Chunker(16384, 32768, 65536, 1, GEAR) {
             "" // don't care
         }
         val file = getSekienAkashita()
@@ -87,7 +90,7 @@ class SekienAkashitaTest {
 
     @Test
     fun testSekien64kChunks() {
-        val chunker = Chunker(32768, 65536, 131_072, 1) {
+        val chunker = Chunker(32768, 65536, 131_072, 1, GEAR) {
             "" // don't care
         }
         val file = getSekienAkashita()
@@ -103,7 +106,7 @@ class SekienAkashitaTest {
 
     @Test
     fun testSekienEndSmallerThanMinimumMin() {
-        val chunker = Chunker(10942, 21884, 43768, 1) {
+        val chunker = Chunker(10942, 21884, 43768, 1, GEAR) {
             "" // don't care
         }
         val file = getSekienAkashita()
@@ -123,6 +126,31 @@ class SekienAkashitaTest {
         assertEquals(51, results[4].length)
 
         assertTrue(results[4].length < MINIMUM_MIN)
+    }
+
+    @Test
+    fun testSameGearTableSameChunks() {
+        val key = Random.nextBytes(256 / 8)
+        val gearTable = GearTableCreator.create(key)
+        val file = getSekienAkashita()
+        val chunker = Chunker(16384, 32768, 65536, 1, gearTable) {
+            "" // don't care
+        }
+        val results = chunker.chunk(file)
+        assertTrue(results.size in 2..5, "Got ${results.size} chunks")
+
+        // same gear table always produces same results
+        for (i in 0..10) {
+            val c = Chunker(16384, 32768, 65536, 1, gearTable) {
+                "" // don't care
+            }
+            val r = c.chunk(file)
+            results.forEachIndexed { j, chunk ->
+                assertEquals(chunk.offset, r[j].offset)
+                assertEquals(chunk.length, r[j].length)
+                assertArrayEquals(chunk.data, r[j].data)
+            }
+        }
     }
 
     private fun getSekienAkashita(): File {

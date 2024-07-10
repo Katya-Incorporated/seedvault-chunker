@@ -19,6 +19,19 @@ object Const {
     /** Largest acceptable value for the maximum chunk size.  */
     const val MAXIMUM_MAX: Int = 1073741824
 
+    /**
+     * Table contains seemingly "random" numbers
+     * which can be created by ciphering a 1024-byte array of all zeros
+     * using a 32-byte key and 16-byte nonce (a.k.a. initialization vector) of all zeroes.
+     * The high bit of each value is cleared,
+     * because 31-bit integers are immune from signed 32-bit integer overflow,
+     * which the implementation relies on for hashing.
+     *
+     * While this may seem to be effectively noise, it is predictable noise,
+     * so the results are always the same.
+     * That is the most important aspect of the content-defined chunking algorithm:
+     * consistent results over time.
+     */
     val GEAR: IntArray = intArrayOf(
         0x5C95C078,
         0x22408989,

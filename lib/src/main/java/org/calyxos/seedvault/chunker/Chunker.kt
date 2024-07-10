@@ -6,6 +6,7 @@ import org.calyxos.seedvault.chunker.Const.MAXIMUM_MAX
 import org.calyxos.seedvault.chunker.Const.MAXIMUM_MIN
 import org.calyxos.seedvault.chunker.Const.MINIMUM_MAX
 import org.calyxos.seedvault.chunker.Const.MINIMUM_MIN
+import org.calyxos.seedvault.chunker.GearTableCreator.GEAR_SIZE
 import java.io.File
 import java.lang.Byte.toUnsignedInt
 import kotlin.math.min
@@ -17,6 +18,7 @@ class Chunker(
     avgSize: Int,
     private val maxSize: Int,
     private val normalization: Int,
+    private val gearTable: IntArray,
     private val hashFunction: (ByteArray) -> String,
 ) {
     private val centerSize: Int = Utils.centerSize(avgSize, minSize, maxSize)
@@ -30,6 +32,7 @@ class Chunker(
         avgSize = avgSize,
         maxSize = avgSize * 8,
         normalization = normalization,
+        gearTable = Const.GEAR,
         hashFunction = hashFunction,
     )
 
@@ -39,6 +42,11 @@ class Chunker(
         check(maxSize in MAXIMUM_MIN..MAXIMUM_MAX)
         check(minSize <= avgSize)
         check(maxSize >= avgSize)
+        check(gearTable.size == GEAR_SIZE)
+        gearTable.forEach {
+            // no negative numbers allowed
+            check(it ushr 31 == 0)
+        }
         check(normalization in 0..3)
 
         val bits = Utils.log2(avgSize)
@@ -92,7 +100,7 @@ class Chunker(
         var index = min(minSize, size)
         var barrier = min(centerSize, size)
         while (index < barrier) {
-            pattern = (pattern ushr 1) + Const.GEAR[toUnsignedInt(blob[index])]
+            pattern = (pattern ushr 1) + gearTable[toUnsignedInt(blob[index])]
             if ((pattern and maskS) == 0) {
                 return index + 1
             }
@@ -100,7 +108,7 @@ class Chunker(
         }
         barrier = min(maxSize, size)
         while (index < barrier) {
-            pattern = (pattern ushr 1) + Const.GEAR[toUnsignedInt(blob[index])]
+            pattern = (pattern ushr 1) + gearTable[toUnsignedInt(blob[index])]
             if ((pattern and maskL) == 0) {
                 return index + 1
             }
