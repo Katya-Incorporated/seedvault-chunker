@@ -19,11 +19,12 @@ class Cli : CliktCommand() {
     private val files by argument().multiple(required = true)
 
     private val checkDedupRatio: Boolean by option().flag(default = false)
+    private val verbose: Boolean by option("-v", "--verbose").flag(default = false)
 
     private val size: Int by option()
         .int()
         .restrictTo(AVERAGE_MIN..AVERAGE_MAX)
-        .default(16384)
+        .default(16 * 1024)
 
     private val normalization: Int by option()
         .int()
@@ -31,17 +32,21 @@ class Cli : CliktCommand() {
         .default(1)
 
     override fun run() {
+        val digest = MessageDigest.getInstance("SHA-256")
+        val chunker = Chunker(size, normalization) { bytes ->
+            digest.digest(bytes).fold("") { str, it -> str + "%02x".format(it) }
+        }
         val duration = measureTime {
             files.forEach { file ->
-                onEachFile(File(file))
+                onEachFile(chunker, File(file))
             }
         }
         println("\nTook: $duration")
         if (checkDedupRatio) {
             println()
             val totalSize = files.sumOf { File(it).length() }
-            val sizePerTime = totalSize / duration.inWholeSeconds
-            println("Files: ${files.size} with a total of $totalSize bytes ($sizePerTime bytes/s)")
+            val sizePerTime = totalSize / duration.inWholeSeconds / 1024 / 1024
+            println("Files: ${files.size} with a total of $totalSize bytes ($sizePerTime MiB/s)")
             println("Unique chunks: ${chunks.size}")
             println("Dupe chunks: $reusedChunks")
             println("Dupe data: $sizeDupe")
@@ -53,22 +58,20 @@ class Cli : CliktCommand() {
     private var reusedChunks: Int = 0
     private var sizeDupe: Long = 0L
 
-    private fun onEachFile(file: File) {
-        println()
-        println(file.absolutePath)
-        if (!file.isFile) {
-            println("  not a file, ignoring...")
-            return
+    private fun onEachFile(chunker: Chunker, file: File) {
+        if (verbose) {
+            println()
+            println(file.absolutePath)
         }
-        val digest = MessageDigest.getInstance("SHA-256")
-        val chunker = Chunker(size, normalization) { bytes ->
-            digest.digest(bytes).fold("") { str, it -> str + "%02x".format(it) }
+        if (!file.isFile) {
+            if (verbose) println("  not a file, ignoring...")
+            return
         }
         chunker.chunk(file) { chunk -> onNewChunk(chunk) }
     }
 
     private fun onNewChunk(chunk: Chunk) {
-        println("hash=${chunk.hash} offset=${chunk.offset} size=${chunk.length}")
+        if (verbose) println("hash=${chunk.hash} offset=${chunk.offset} size=${chunk.length}")
         if (checkDedupRatio) {
             if (chunk.hash in chunks) {
                 sizeDupe += chunk.length

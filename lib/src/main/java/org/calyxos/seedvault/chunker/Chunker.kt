@@ -10,6 +10,7 @@ import org.calyxos.seedvault.chunker.GearTableCreator.GEAR_SIZE
 import java.io.File
 import java.lang.Byte.toUnsignedInt
 import kotlin.math.min
+import kotlin.math.roundToInt
 
 class Chunk(val offset: Long, val length: Int, val data: ByteArray, val hash: String)
 
@@ -34,10 +35,10 @@ class Chunker(
     private val blob = RingByteArray(maxSize * 2)
     private var offset: Long = 0
 
-    constructor(avgSize: Int, normalization: Int = 2, hashFunction: (ByteArray) -> String) : this(
-        minSize = avgSize.floorDiv(4),
+    constructor(avgSize: Int, normalization: Int = 1, hashFunction: (ByteArray) -> String) : this(
+        minSize = avgSize.floorDiv(2),
         avgSize = avgSize,
-        maxSize = avgSize * 8,
+        maxSize = (avgSize * 2.5).roundToInt(),
         normalization = normalization,
         gearTable = Const.GEAR,
         hashFunction = hashFunction,
