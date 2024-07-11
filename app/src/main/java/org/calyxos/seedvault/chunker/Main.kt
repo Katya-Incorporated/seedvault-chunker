@@ -51,12 +51,20 @@ class Cli : CliktCommand() {
             println("Dupe chunks: $reusedChunks")
             println("Dupe data: $sizeDupe")
             println("Dedup Ratio: ${(sizeDupe.toDouble() / totalSize.toDouble() * 100).roundToInt()}%")
+            val total = chunks.size + reusedChunks
+            val small = ((numSmall.toDouble() / total) * 100).roundToInt()
+            val medium = ((numMedium.toDouble() / total) * 100).roundToInt()
+            val large = ((numLarge.toDouble() / total) * 100).roundToInt()
+            println("Small: $small% - Medium: $medium% - Large: $large%")
         }
     }
 
     private val chunks = mutableSetOf<String>()
     private var reusedChunks: Int = 0
     private var sizeDupe: Long = 0L
+    private var numSmall = 0
+    private var numMedium = 0
+    private var numLarge = 0
 
     private fun onEachFile(chunker: Chunker, file: File) {
         if (verbose) {
@@ -79,6 +87,9 @@ class Cli : CliktCommand() {
             } else {
                 chunks.add(chunk.hash)
             }
+            if (chunk.data.size < size - size / 2) numSmall++
+            else if (chunk.data.size > size * 2) numLarge++
+            else numMedium++
         }
     }
 }
