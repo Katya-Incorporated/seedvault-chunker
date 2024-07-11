@@ -105,6 +105,25 @@ class SekienAkashitaTest {
     }
 
     @Test
+    fun testChunkerCanBeReUsed() {
+        val chunker = Chunker(32768, 65536, 131_072, 1, GEAR) {
+            "" // don't care
+        }
+        val file = getSekienAkashita()
+        buildList {
+            for (i in 0..10) add(chunker.chunk(file))
+        }.forEach { results ->
+            // always getting same chunks back
+            assertEquals(2, results.size)
+
+            assertEquals(0, results[0].offset)
+            assertEquals(32857, results[0].length)
+            assertEquals(32857, results[1].offset)
+            assertEquals(76609, results[1].length)
+        }
+    }
+
+    @Test
     fun testSekienEndSmallerThanMinimumMin() {
         val chunker = Chunker(10942, 21884, 43768, 1, GEAR) {
             "" // don't care
@@ -141,10 +160,7 @@ class SekienAkashitaTest {
 
         // same gear table always produces same results
         for (i in 0..10) {
-            val c = Chunker(16384, 32768, 65536, 1, gearTable) {
-                "" // don't care
-            }
-            val r = c.chunk(file)
+            val r = chunker.chunk(file)
             results.forEachIndexed { j, chunk ->
                 assertEquals(chunk.offset, r[j].offset)
                 assertEquals(chunk.length, r[j].length)

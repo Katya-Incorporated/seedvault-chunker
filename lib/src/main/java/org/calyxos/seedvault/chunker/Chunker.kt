@@ -13,6 +13,12 @@ import kotlin.math.min
 
 class Chunk(val offset: Long, val length: Int, val data: ByteArray, val hash: String)
 
+/**
+ * Use [addBytes] for adding bytes and retrieving chunks as they become available.
+ * Make sure to call [finalize] when all bytes have been added to retrieve the last chunks.
+ *
+ * After calling [finalize], the [Chunker] can be re-used to chunk another byte sequence.
+ */
 class Chunker(
     private val minSize: Int,
     avgSize: Int,
@@ -82,6 +88,7 @@ class Chunker(
         while (!blob.isEmpty) {
             yield(getNextChunk())
         }
+        offset = 0
     }
 
     private fun getNextChunk(): Chunk {
