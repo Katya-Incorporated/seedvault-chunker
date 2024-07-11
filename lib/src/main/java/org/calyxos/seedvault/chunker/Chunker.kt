@@ -17,13 +17,14 @@ class Chunk(val offset: Long, val length: Int, val data: ByteArray, val hash: St
  * Use [addBytes] for adding bytes and retrieving chunks as they become available.
  * Make sure to call [finalize] when all bytes have been added to retrieve the last chunks.
  *
- * After calling [finalize], the [Chunker] can be re-used to chunk another byte sequence.
+ * After calling [finalize] **and** consuming the resulting [Sequence] **to the end**,
+ * the [Chunker] can be re-used to chunk other bytes.
  */
 class Chunker(
     private val minSize: Int,
     avgSize: Int,
     private val maxSize: Int,
-    private val normalization: Int,
+    normalization: Int,
     private val gearTable: IntArray,
     private val hashFunction: (ByteArray) -> String,
 ) {

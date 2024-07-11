@@ -1,6 +1,7 @@
 package org.calyxos.seedvault.chunker
 
 import org.calyxos.seedvault.chunker.Const.GEAR
+import kotlin.random.Random
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -21,4 +22,19 @@ class ChunkerTest {
             assertEquals(1024, chunk.length)
         }
     }
+
+    @Test
+    fun testMultipleFinalizeCalls() {
+        val chunker = Chunker(64, 256, 1024, 1, GEAR) {
+            "" // don't care
+        }
+        val bytes = Random.nextBytes(4069 * 8)
+        chunker.addBytes(bytes).toList()
+        chunker.finalize().toList()
+
+        for (i in 0..10) {
+            assertEquals(emptyList(), chunker.finalize().toList())
+        }
+    }
+
 }
