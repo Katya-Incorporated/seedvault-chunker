@@ -11,6 +11,7 @@ import com.github.ajalt.clikt.parameters.types.restrictTo
 import org.calyxos.seedvault.chunker.Const.AVERAGE_MAX
 import org.calyxos.seedvault.chunker.Const.AVERAGE_MIN
 import java.io.File
+import java.io.FileOutputStream
 import java.security.MessageDigest
 import kotlin.math.roundToInt
 import kotlin.time.measureTime
@@ -20,6 +21,7 @@ class Cli : CliktCommand() {
 
     private val checkDedupRatio: Boolean by option().flag(default = false)
     private val verbose: Boolean by option("-v", "--verbose").flag(default = false)
+    private val writeCsv: Boolean by option().flag(default = false)
 
     private val size: Int by option()
         .int()
@@ -86,12 +88,24 @@ class Cli : CliktCommand() {
                 reusedChunks++
             } else {
                 chunks.add(chunk.hash)
+                if (writeCsv) {
+                    addToCsv(chunk.length)
+                }
             }
             if (chunk.data.size < size - size / 2) numSmall++
             else if (chunk.data.size > size * 2) numLarge++
             else numMedium++
+        } else if (writeCsv) {
+            addToCsv(chunk.length)
         }
     }
+
+    private fun addToCsv(size: Int) {
+        FileOutputStream(File("chunks.csv"), true).use {
+            it.write("$size\n".toByteArray())
+        }
+    }
+
 }
 
 fun main(args: Array<String>) = Cli().main(args)
