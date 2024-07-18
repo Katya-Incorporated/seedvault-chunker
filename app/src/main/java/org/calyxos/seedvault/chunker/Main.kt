@@ -8,13 +8,16 @@ import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.types.int
 import com.github.ajalt.clikt.parameters.types.restrictTo
+import org.apache.commons.compress.compressors.zstandard.ZstdCompressorOutputStream
 import org.calyxos.seedvault.chunker.Const.AVERAGE_MAX
 import org.calyxos.seedvault.chunker.Const.AVERAGE_MIN
+import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
 import java.security.MessageDigest
 import kotlin.math.roundToInt
 import kotlin.time.measureTime
+
 
 class Cli : CliktCommand() {
     private val files by argument().multiple(required = true)
@@ -48,25 +51,41 @@ class Cli : CliktCommand() {
             println()
             val totalSize = files.sumOf { File(it).length() }
             val sizePerTime = totalSize / duration.inWholeSeconds / 1024 / 1024
+            val sizeCompressedDupe = totalSize - compressedSize
+            val dedup = (sizeCompressedDupe.toDouble() / totalSize.toDouble() * 100).roundToInt()
             println("Files: ${files.size} with a total of $totalSize bytes ($sizePerTime MiB/s)")
             println("Unique chunks: ${chunks.size}")
             println("Dupe chunks: $reusedChunks")
-            println("Dupe data: $sizeDupe")
-            println("Dedup Ratio: ${(sizeDupe.toDouble() / totalSize.toDouble() * 100).roundToInt()}%")
-            val total = chunks.size + reusedChunks
-            val small = ((numSmall.toDouble() / total) * 100).roundToInt()
-            val medium = ((numMedium.toDouble() / total) * 100).roundToInt()
-            val large = ((numLarge.toDouble() / total) * 100).roundToInt()
-            println("Small: $small% - Medium: $medium% - Large: $large%")
+            println("Dupe data: $sizeCompressedDupe")
+            println("Dedup Ratio: ${dedup}%")
+
+            println()
+            println("Total size: ${totalSize / 1024 / 1024}MB")
+            println("chunk ┃ unique ┃ compressed ┃ size  ┃ chunks ┃ chunks ┃ chunks ")
+            println("size  ┃ chunks ┃    size    ┃ saved ┃ < 10KB ┃ <500KB ┃ <800KB ")
+            println("━━━━━━╋━━━━━━━━╋━━━━━━━━━━━━╋━━━━━━━╋━━━━━━━━╋━━━━━━━━╋━━━━━━━ ")
+            print("${(size.toDouble() / 1024 / 1024).toString().padStart(3)}MB ┃ ")
+            print("${chunks.size.toString().padStart(6)} ┃ ")
+            print("${(compressedSize / 1024 / 1024).toString().padStart(8)}MB ┃ ")
+            print("${dedup.toString().padStart(4)}% ┃ ")
+            print("${numLessThan10.toString().padStart(6)} ┃ ")
+            print("${numLessThan500.toString().padStart(6)} ┃ ")
+            print("${numLessThan800.toString().padStart(6)} ")
+            println()
+            print("   uncompressed: ")
+            println("${(uniqueChunkSize / 1024 / 1024).toString().padStart(8)}MB")
         }
     }
 
     private val chunks = mutableSetOf<String>()
     private var reusedChunks: Int = 0
     private var sizeDupe: Long = 0L
-    private var numSmall = 0
-    private var numMedium = 0
-    private var numLarge = 0
+    private var uniqueChunkSize: Long = 0L
+    private var compressedSize: Long = 0L
+
+    private var numLessThan10 = 0
+    private var numLessThan500 = 0
+    private var numLessThan800 = 0
 
     private fun onEachFile(chunker: Chunker, file: File) {
         if (verbose) {
@@ -80,6 +99,8 @@ class Cli : CliktCommand() {
         chunker.chunk(file) { chunk -> onNewChunk(chunk) }
     }
 
+    private val outputStream = ByteArrayOutputStream()
+
     private fun onNewChunk(chunk: Chunk) {
         if (verbose) println("hash=${chunk.hash} offset=${chunk.offset} size=${chunk.length}")
         if (checkDedupRatio) {
@@ -88,21 +109,29 @@ class Cli : CliktCommand() {
                 reusedChunks++
             } else {
                 chunks.add(chunk.hash)
+                outputStream.reset()
+                ZstdCompressorOutputStream(outputStream).use {
+                    it.write(chunk.data)
+                }
+                compressedSize += outputStream.size()
+                uniqueChunkSize += chunk.data.size
+
+                if (outputStream.size() < 10 * 1024) numLessThan10++
+                if (outputStream.size() < 500 * 1024) numLessThan500++
+                if (outputStream.size() < 800 * 1024) numLessThan800++
+
                 if (writeCsv) {
-                    addToCsv(chunk.length)
+                    addToCsv("${chunk.length},${outputStream.size()}")
                 }
             }
-            if (chunk.data.size < size - size / 2) numSmall++
-            else if (chunk.data.size > size * 2) numLarge++
-            else numMedium++
         } else if (writeCsv) {
-            addToCsv(chunk.length)
+            addToCsv(chunk.length.toString())
         }
     }
 
-    private fun addToCsv(size: Int) {
+    private fun addToCsv(s: String) {
         FileOutputStream(File("chunks.csv"), true).use {
-            it.write("$size\n".toByteArray())
+            it.write("$s\n".toByteArray())
         }
     }
 
