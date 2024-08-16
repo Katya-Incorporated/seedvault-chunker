@@ -8,7 +8,7 @@ import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.types.int
 import com.github.ajalt.clikt.parameters.types.restrictTo
-import org.apache.commons.compress.compressors.zstandard.ZstdCompressorOutputStream
+import com.github.luben.zstd.ZstdOutputStream
 import org.calyxos.seedvault.chunker.Const.AVERAGE_MAX
 import org.calyxos.seedvault.chunker.Const.AVERAGE_MIN
 import java.io.ByteArrayOutputStream
@@ -49,7 +49,6 @@ class Cli : CliktCommand() {
         println("\nTook: $duration")
         if (checkDedupRatio) {
             println()
-            val totalSize = files.sumOf { File(it).length() }
             val sizePerTime = totalSize / duration.inWholeSeconds / 1024 / 1024
             val sizeCompressedDupe = totalSize - compressedSize
             val dedup = (sizeCompressedDupe.toDouble() / totalSize.toDouble() * 100).roundToInt()
@@ -58,6 +57,7 @@ class Cli : CliktCommand() {
             println("Dupe chunks: $reusedChunks")
             println("Dupe data: $sizeCompressedDupe")
             println("Dedup Ratio: ${dedup}%")
+            println("Single file chunks: $singleFileChunks Deduped: $singleFileChunksDedup")
 
             println()
             println("Total size: ${totalSize / 1024 / 1024}MB")
@@ -86,6 +86,10 @@ class Cli : CliktCommand() {
     private var numLessThan10 = 0
     private var numLessThan500 = 0
     private var numLessThan800 = 0
+    private var singleFileChunks = 0
+    private var singleFileChunksDedup = 0
+
+    private var totalSize: Long = 0
 
     private fun onEachFile(chunker: Chunker, file: File) {
         if (verbose) {
@@ -96,21 +100,24 @@ class Cli : CliktCommand() {
             if (verbose) println("  not a file, ignoring...")
             return
         }
-        chunker.chunk(file) { chunk -> onNewChunk(chunk) }
+        totalSize += file.length()
+        chunker.chunk(file) { chunk -> onNewChunk(chunk, file.length()) }
     }
 
     private val outputStream = ByteArrayOutputStream()
 
-    private fun onNewChunk(chunk: Chunk) {
+    private fun onNewChunk(chunk: Chunk, length: Long) {
         if (verbose) println("hash=${chunk.hash} offset=${chunk.offset} size=${chunk.length}")
+        if (length == chunk.length.toLong()) singleFileChunks++
         if (checkDedupRatio) {
             if (chunk.hash in chunks) {
                 sizeDupe += chunk.length
                 reusedChunks++
+                if (length == chunk.length.toLong()) singleFileChunksDedup++
             } else {
                 chunks.add(chunk.hash)
                 outputStream.reset()
-                ZstdCompressorOutputStream(outputStream).use {
+                ZstdOutputStream(outputStream).use {
                     it.write(chunk.data)
                 }
                 compressedSize += outputStream.size()
