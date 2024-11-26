@@ -1,4 +1,4 @@
-package org.calyxos.seedvault.chunker
+package app.grapheneos.seedvault.chunker
 
 import java.nio.ByteBuffer
 import javax.crypto.Cipher

@@ -1,4 +1,4 @@
-package org.calyxos.seedvault.chunker
+package app.grapheneos.seedvault.chunker
 
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.parameters.arguments.argument
@@ -9,8 +9,8 @@ import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.types.int
 import com.github.ajalt.clikt.parameters.types.restrictTo
 import com.github.luben.zstd.ZstdOutputStream
-import org.calyxos.seedvault.chunker.Const.AVERAGE_MAX
-import org.calyxos.seedvault.chunker.Const.AVERAGE_MIN
+import app.grapheneos.seedvault.chunker.Const.AVERAGE_MAX
+import app.grapheneos.seedvault.chunker.Const.AVERAGE_MIN
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream

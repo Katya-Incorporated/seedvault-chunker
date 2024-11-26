@@ -20,14 +20,14 @@ kotlin {
 }
 
 application {
-    mainClass.set("org.calyxos.seedvault.chunker.MainKt")
+    mainClass.set("app.grapheneos.seedvault.chunker.MainKt")
 }
 
 tasks.register<Jar>("uberJar") {
     archiveBaseName = "seedvault-chunker"
 
     manifest {
-        attributes["Main-Class"] = "org.calyxos.seedvault.chunker.MainKt"
+        attributes["Main-Class"] = "app.grapheneos.seedvault.chunker.MainKt"
     }
 
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE

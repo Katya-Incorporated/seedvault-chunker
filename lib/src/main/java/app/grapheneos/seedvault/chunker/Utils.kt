@@ -1,4 +1,4 @@
-package org.calyxos.seedvault.chunker
+package app.grapheneos.seedvault.chunker
 
 import kotlin.math.log2
 import kotlin.math.min

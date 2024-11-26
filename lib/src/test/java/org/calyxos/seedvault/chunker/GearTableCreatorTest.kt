@@ -1,6 +1,6 @@
-package org.calyxos.seedvault.chunker
+package app.grapheneos.seedvault.chunker
 
-import org.calyxos.seedvault.chunker.GearTableCreator.GEAR_SIZE
+import app.grapheneos.seedvault.chunker.GearTableCreator.GEAR_SIZE
 import org.junit.Assert.assertArrayEquals
 import kotlin.random.Random
 import kotlin.test.Test

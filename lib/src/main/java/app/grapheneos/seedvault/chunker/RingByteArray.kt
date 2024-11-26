@@ -1,4 +1,4 @@
-package org.calyxos.seedvault.chunker
+package app.grapheneos.seedvault.chunker
 
 internal class RingByteArray(capacity: Int) {
 

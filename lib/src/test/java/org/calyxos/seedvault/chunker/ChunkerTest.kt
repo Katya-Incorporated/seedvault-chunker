@@ -1,6 +1,6 @@
-package org.calyxos.seedvault.chunker
+package app.grapheneos.seedvault.chunker
 
-import org.calyxos.seedvault.chunker.Const.GEAR
+import app.grapheneos.seedvault.chunker.Const.GEAR
 import kotlin.random.Random
 import kotlin.test.Test
 import kotlin.test.assertEquals

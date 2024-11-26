@@ -1,13 +1,13 @@
-package org.calyxos.seedvault.chunker
+package app.grapheneos.seedvault.chunker
 
-import org.calyxos.seedvault.chunker.Const.AVERAGE_MAX
-import org.calyxos.seedvault.chunker.Const.AVERAGE_MIN
-import org.calyxos.seedvault.chunker.Const.MAXIMUM_MAX
-import org.calyxos.seedvault.chunker.Const.MINIMUM_MIN
-import org.calyxos.seedvault.chunker.Utils.ceilDiv
-import org.calyxos.seedvault.chunker.Utils.centerSize
-import org.calyxos.seedvault.chunker.Utils.log2
-import org.calyxos.seedvault.chunker.Utils.mask
+import app.grapheneos.seedvault.chunker.Const.AVERAGE_MAX
+import app.grapheneos.seedvault.chunker.Const.AVERAGE_MIN
+import app.grapheneos.seedvault.chunker.Const.MAXIMUM_MAX
+import app.grapheneos.seedvault.chunker.Const.MINIMUM_MIN
+import app.grapheneos.seedvault.chunker.Utils.ceilDiv
+import app.grapheneos.seedvault.chunker.Utils.centerSize
+import app.grapheneos.seedvault.chunker.Utils.log2
+import app.grapheneos.seedvault.chunker.Utils.mask
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFails

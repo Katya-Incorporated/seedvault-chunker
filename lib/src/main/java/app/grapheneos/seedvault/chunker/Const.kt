@@ -1,4 +1,4 @@
-package org.calyxos.seedvault.chunker
+package app.grapheneos.seedvault.chunker
 
 object Const {
     /** Smallest acceptable value for the minimum chunk size.  */

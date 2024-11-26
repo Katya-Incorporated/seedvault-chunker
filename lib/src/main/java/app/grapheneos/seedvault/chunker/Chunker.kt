@@ -1,12 +1,12 @@
-package org.calyxos.seedvault.chunker
+package app.grapheneos.seedvault.chunker
 
-import org.calyxos.seedvault.chunker.Const.AVERAGE_MAX
-import org.calyxos.seedvault.chunker.Const.AVERAGE_MIN
-import org.calyxos.seedvault.chunker.Const.MAXIMUM_MAX
-import org.calyxos.seedvault.chunker.Const.MAXIMUM_MIN
-import org.calyxos.seedvault.chunker.Const.MINIMUM_MAX
-import org.calyxos.seedvault.chunker.Const.MINIMUM_MIN
-import org.calyxos.seedvault.chunker.GearTableCreator.GEAR_SIZE
+import app.grapheneos.seedvault.chunker.Const.AVERAGE_MAX
+import app.grapheneos.seedvault.chunker.Const.AVERAGE_MIN
+import app.grapheneos.seedvault.chunker.Const.MAXIMUM_MAX
+import app.grapheneos.seedvault.chunker.Const.MAXIMUM_MIN
+import app.grapheneos.seedvault.chunker.Const.MINIMUM_MAX
+import app.grapheneos.seedvault.chunker.Const.MINIMUM_MIN
+import app.grapheneos.seedvault.chunker.GearTableCreator.GEAR_SIZE
 import java.io.File
 import java.lang.Byte.toUnsignedInt
 import kotlin.math.min
